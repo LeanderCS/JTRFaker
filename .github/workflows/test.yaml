@@ -1,0 +1,21 @@
+name: Run Tests
+
+on: [ push ]
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build . -t faker-test
+
+      - name: Run tests in Docker
+        run: docker run faker-test pytest
