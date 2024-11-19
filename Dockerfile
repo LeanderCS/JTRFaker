@@ -1,8 +1,12 @@
-FROM python:3.13-slim
+FROM python:3.9-slim
 
 WORKDIR /app
 COPY . /app
 
+RUN python3 -m venv venv
+RUN . venv/bin/activate
+
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
-RUN pip install -r requirements-dev.txt
+
+ENV PYTHONPATH=/app/src

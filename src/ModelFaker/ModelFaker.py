@@ -1,19 +1,24 @@
 import json
 import random
 import traceback
+from datetime import datetime, date
 from typing import List, Union, Optional, Dict, Any
 
 from sqlalchemy import ColumnDefault, Table, desc, Column
 from sqlalchemy.orm import ColumnProperty
+from flask import current_app
 
 from faker import Faker
+
+from .Enum.ModelColumnTypesEnum import ModelColumnTypesEnum
 
 
 class ModelFaker:
     """
-    The ModelFaker class is a utility class that helps in generating fake data for a given SQLAlchemy model.
-    It uses the faker library to generate fake data based on the column types of the model.
-    It also handles relationships between models and can generate data for many-to-many relationships.
+    The ModelFaker class is a utility class that helps in generating fake data
+    for a given SQLAlchemy model. It uses the faker library to generate fake
+    data based on the column types of the model. It also handles relationships
+    between models and can generate data for many-to-many relationships.
     """
 
     def __init__(self, model: Union[Table, ColumnProperty]) -> None:
@@ -23,7 +28,7 @@ class ModelFaker:
 
         self.model = model
         self.fake = Faker()
-        self.db = SQLAlchemy()
+        self.db = current_app.extensions["sqlalchemy"]
 
     def create(self, amount: int = 1) -> None:
         """
@@ -45,22 +50,24 @@ class ModelFaker:
                     data[column.name] = self._generateFakeData(column)
 
                 if self.__isManyToManyRelationTable():
-                    db.session.execute(self.model.insert().values(**data))
+                    self.db.session.execute(self.model.insert().values(**data))
 
                 else:
-                    db.session.add(self.model(**data))
+                    self.db.session.add(self.model(**data))
 
-            db.session.commit()
+            self.db.session.commit()
 
         except Exception as e:
-            db.session.rollback()
+            self.db.session.rollback()
             print(f"Failed to commit: {e} {traceback.format_exc()}")
 
     def _generateFakeData(
-            self, column: Column) -> Optional[Union[str, int, bool, None]]:
+        self, column: Column
+    ) -> Optional[Union[str, int, bool, date, datetime, None]]:
         """
         Generates fake data for a given column based on its type.
-        It handles Enum, String, Integer, Boolean, DateTime, and Date column types.
+        It handles Enum, String, Integer, Boolean, DateTime, and Date column
+        types.
         """
 
         columnType = column.type
@@ -85,8 +92,11 @@ class ModelFaker:
         elif isinstance(columnType, ModelColumnTypesEnum.BOOLEAN.value):
             return self.fake.boolean()
 
-        elif isinstance(columnType, (ModelColumnTypesEnum.DATETIME.value, ModelColumnTypesEnum.DATE.value)):
-            return self.fake.date()
+        elif isinstance(columnType, ModelColumnTypesEnum.DATE.value):
+            return self.fake.date_object()
+
+        elif isinstance(columnType, ModelColumnTypesEnum.DATETIME.value):
+            return self.fake.date_time()
 
         return None
 
@@ -100,11 +110,11 @@ class ModelFaker:
 
         ModelFaker(parentModel).create()
 
-        parentData = db.session.query(
-            parentModel
-        ).order_by(
-            desc(parentModel.c.created_at)
-        ).first()
+        parentData = (
+            self.db.session.query(parentModel)
+            .order_by(desc(parentModel.c.created_at))
+            .first()
+        )
 
         return parentData.id if parentData else None
 
@@ -113,37 +123,49 @@ class ModelFaker:
         Checks if the model is a many-to-many relationship table.
         """
 
-        return not hasattr(
-            self.model,
-            '__table__') and not hasattr(
-            self.model,
-            '__mapper__')
+        return not hasattr(self.model, "__table__") and not hasattr(
+            self.model, "__mapper__"
+        )
 
     def __isPrimaryKeyOrHasDefaultValue(self, column: Column) -> bool:
         """
         Checks if a column is a primary key or has a default value.
         """
 
-        return ((column.primary_key and not column.foreign_keys) or (
-            isinstance(column.default, ColumnDefault) and column.default.arg is not None) or
-            column.nullable is not None and column.nullable is True)
+        return (
+            (column.primary_key and not column.foreign_keys)
+            or (
+                isinstance(column.default, ColumnDefault)
+                and column.default.arg is not None
+            )
+            or column.nullable is not None
+            and column.nullable is True
+        )
 
     def __getTableColumns(self) -> List[Column]:
         """
         Returns the columns of the model's table.
         """
 
-        return self.model.columns if self.__isManyToManyRelationTable(
-        ) else self.model.__table__.columns
+        return (
+            self.model.columns
+            if self.__isManyToManyRelationTable()
+            else self.model.__table__.columns
+        )
 
     def __getRelatedClass(self, column: Column) -> Table:
         """
-        Returns the related class of a column if it has a relationship with another model.
+        Returns the related class of a column if it has a relationship with
+        another model.
         """
 
-        if not self.__isManyToManyRelationTable(
-        ) and column.name in self.model.__mapper__.relationships.keys():
-            return self.model.__mapper__.relationships[column.key].mapper.class_
+        if (
+            not self.__isManyToManyRelationTable()
+            and column.name in self.model.__mapper__.relationships.keys()
+        ):
+            return self.model.__mapper__.relationships[
+                column.key
+            ].mapper.class_
 
         fk = list(column.foreign_keys)[0]
 
@@ -159,9 +181,11 @@ class ModelFaker:
         return self._populateJsonStructure(json_structure)
 
     def _populateJsonStructure(
-            self, structure: Union[Dict[str, Any], List[Any]]) -> Any:
+        self, structure: Union[Dict[str, Any], List[Any]]
+    ) -> Any:
         """
-        Populates the JSON structure with fake data based on the defined schema.
+        Populates the JSON structure with fake data based on the defined
+        schema.
         """
 
         if isinstance(structure, dict):
@@ -171,9 +195,9 @@ class ModelFaker:
 
                 if isinstance(value, dict):
                     populated_data[key] = self._populateJsonStructure(value)
-                elif value == 'datetime':
+                elif value == "datetime":
                     populated_data[key] = self.fake.date_time().isoformat()
-                elif value == 'date':
+                elif value == "date":
                     populated_data[key] = self.fake.date()
                 else:
                     populated_data[key] = self.fake.word()
@@ -181,7 +205,8 @@ class ModelFaker:
             return json.dumps(populated_data)
 
         elif isinstance(structure, list):
-            return json.dumps([self.fake.word()
-                              for _ in range(len(structure))])
+            return json.dumps(
+                [self.fake.word() for _ in range(len(structure))]
+            )
 
         return json.dumps(structure)

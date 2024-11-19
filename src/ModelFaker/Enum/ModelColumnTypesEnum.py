@@ -1,6 +1,14 @@
 from enum import Enum
 
-from sqlalchemy import Integer, String, Text, Boolean, DateTime, Enum as SQLAlchemyEnum, Date
+from sqlalchemy import (
+    Integer,
+    String,
+    Text,
+    Boolean,
+    DateTime,
+    Enum as SQLAlchemyEnum,
+    Date,
+)
 from sqlalchemy.orm import relationship
 
 
