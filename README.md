@@ -10,3 +10,10 @@ or for `testing` your application's functionality.
 ```bash
 pip install JTRFaker
 ```
+
+## Usage
+
+The usage varies depending on the type of data you want to generate. The following are the
+different types of data that can be generated using the `JTRFaker` module:
+
+1. `ModelFaker` - Database entries based on sqlalchemy models with lots of different options. 

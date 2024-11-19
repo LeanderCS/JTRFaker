@@ -1,2 +1,8 @@
-SQLAlchemy
-Faker
+faker
+flake8
+flask
+flask_sqlalchemy
+pytest
+pytest-mock
+setuptools
+twine

@@ -18,4 +18,17 @@ jobs:
         run: docker build . -t faker-test
 
       - name: Run tests in Docker
-        run: docker run faker-test pytest
+        run: |
+          set -x # Print commands and their arguments as they are executed.
+          set -e # Exit immediately if a command exits with a non-zero status.
+          set -u # Exit immediately if a variable is not defined.
+
+          docker run faker-test pytest
+
+      - name: Run code style checks
+        run: |
+          set -x # Print commands and their arguments as they are executed
+          set -e # Exit immediately if a command exits with a non-zero status
+          set -u # Exit immediately if a variable is not defined
+      
+          docker run faker-test flake8
