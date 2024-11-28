@@ -16,4 +16,4 @@ pip install JTRFaker
 The usage varies depending on the type of data you want to generate. The following are the
 different types of data that can be generated using the `JTRFaker` module:
 
-1. `ModelFaker` - Database entries based on sqlalchemy models with lots of different options. 
+1. [`ModelFaker`](src/ModelFaker/README.md) - Database entries based on sqlalchemy models with lots of different options. 
