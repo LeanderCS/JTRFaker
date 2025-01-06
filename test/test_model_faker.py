@@ -23,13 +23,19 @@ class MyModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     string_field = db.Column(db.String(80), nullable=False)
+    short_string_field = db.Column(db.String(5), nullable=False)
+    long_string_field = db.Column(db.String(255), nullable=False)
     nullable_field = db.Column(db.String(80), nullable=True)
     boolean_field = db.Column(db.Boolean, nullable=False)
     default_field = db.Column(db.String(80), nullable=False, default="test123")
     integer_field = db.Column(db.Integer, nullable=False)
+    max_min_integer_field = db.Column(db.Integer, nullable=False,
+                                      info={"min": 100, "max": 101})
+    float_field = db.Column(db.Float((5, 2)), nullable=False)
     date_field = db.Column(db.Date, nullable=False)
     datetime_field = db.Column(db.DateTime, nullable=False)
-    json_field = db.Column(db.Text, nullable=False, doc='["string"]')
+    json_field = db.Column(db.Text, nullable=False,
+                           doc='["string", "integer"]')
 
 
 @pytest.fixture
@@ -62,9 +68,9 @@ def fake_data(app) -> ModelFaker:
     Fixture to create fake data for the MyModel model.
     """
 
-    modelFaker = ModelFaker(MyModel)
+    model_faker = ModelFaker(MyModel)
 
-    return modelFaker
+    return model_faker
 
 
 def test_create_fake_data(fake_data) -> None:
@@ -74,8 +80,8 @@ def test_create_fake_data(fake_data) -> None:
 
     fake_data.create(amount=5)
 
-    fakeEntries = MyModel.query.all()
-    assert len(fakeEntries) == 5
+    fake_entries = MyModel.query.all()
+    assert len(fake_entries) == 5
 
 
 def test_nullable_field(fake_data) -> None:
@@ -111,7 +117,6 @@ def test_string_field(fake_data) -> None:
 
     entry = MyModel.query.first()
 
-    assert entry.string_field is not None
     assert isinstance(entry.string_field, str)
 
 
@@ -125,6 +130,41 @@ def test_integer_field(fake_data) -> None:
     entry = MyModel.query.first()
 
     assert isinstance(entry.integer_field, int)
+
+
+def test_max_min_integer_field(fake_data) -> None:
+    """
+    Test if the integer field is handled correctly.
+    """
+
+    fake_data.create()
+
+    entry = MyModel.query.first()
+
+    assert isinstance(entry.max_min_integer_field, int)
+    assert entry.max_min_integer_field >= 100
+    assert entry.max_min_integer_field <= 101
+
+
+def test_float_field(fake_data) -> None:
+    """
+    Test if the integer field is handled correctly.
+    """
+
+    fake_data.create()
+
+    entry = MyModel.query.first()
+
+    assert isinstance(entry.float_field, float)
+
+    precision = len(
+        str(entry.float_field).replace('.', '').replace('-', ''))
+    assert precision == 5
+
+    scale = len(
+        str(entry.float_field).split('.')[1]) if '.' in str(entry.float_field)\
+        else 0
+    assert scale == 2
 
 
 def test_bool_field(fake_data) -> None:
@@ -174,7 +214,10 @@ def test_json_field(fake_data) -> None:
 
     assert entry.json_field is not None
     assert isinstance(entry.json_field, str)
-    json_data = eval(entry.json_field)  # Convert JSON string to Python object
+
+    json_data = eval(entry.json_field)
     assert isinstance(json_data, list)
-    assert len(json_data) == 1
+    assert len(json_data) == 2
+
     assert isinstance(json_data[0], str)
+    assert isinstance(json_data[1], int)

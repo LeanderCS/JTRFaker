@@ -8,6 +8,7 @@ from sqlalchemy import (
     DateTime,
     Enum as SQLAlchemyEnum,
     Date,
+    Float
 )
 from sqlalchemy.orm import relationship
 
@@ -18,6 +19,8 @@ class ModelColumnTypesEnum(Enum):
     STRING = String
 
     INTEGER = Integer
+
+    FLOAT = Float
 
     TEXT = Text
 
