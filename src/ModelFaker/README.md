@@ -46,7 +46,7 @@ Following example would result in a default value of `0` for the field:
 is_deleted: Column[Boolean] = db.Column(
     db.Boolean,
     nullable=False,
-    server_default='0'
+    server_default="0"
 )
 ```
 
@@ -107,11 +107,11 @@ The enum class `StatusTypesEnum` could look like this:
 ```python
 class StatusTypesEnum(Enum):
 
-    CREATED = 'created'
+    CREATED = "created"
 
-    PUBLISHED = 'published'
+    PUBLISHED = "published"
 
-    CANCELED = 'canceled'
+    CANCELED = "canceled"
 ```
 
 It also allows a default enum value:
@@ -143,7 +143,7 @@ Following example would result in a creation of an entry for the users table to 
 ```python
 user_id: Column[Integer] = db.Column(
     db.Integer(),
-    db.ForeignKey('users.id'),
+    db.ForeignKey("users.id"),
     nullable=False
 )
 ```
@@ -173,6 +173,6 @@ address: Column[Text] = db.Column(
     db.Text(),
     nullable=False,
     default='{}',
-    doc='{"street": "string", "city": "string", "zip": "string"}'
+    doc='{"street": "string", "location": {"city": ""string", "zip": "string"}}'
 )
 ```

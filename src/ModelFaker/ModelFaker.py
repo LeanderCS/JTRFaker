@@ -84,7 +84,7 @@ class ModelFaker:
             return self.__handleRelationship(column)
 
         elif isinstance(columnType, ModelColumnTypesEnum.STRING.value):
-            maxLength = columnType.length if hasattr(columnType, 'length')\
+            maxLength = columnType.length if hasattr(columnType, "length")\
                 else 255
             return self.fake.text(max_nb_chars=maxLength)
 
@@ -98,7 +98,7 @@ class ModelFaker:
             return self.fake.random_int(min=min_value, max=max_value)
 
         elif isinstance(columnType, ModelColumnTypesEnum.FLOAT.value):
-            precision = getattr(columnType, 'precision')
+            precision = getattr(columnType, "precision")
             if not precision:
                 return self.fake.pyfloat()
 
@@ -206,43 +206,35 @@ class ModelFaker:
         """
 
         if isinstance(structure, dict):
-            populated_data = {}
-
-            for key, value in structure.items():
-
-                if isinstance(value, dict):
-                    populated_data[key] = self._populateJsonStructure(value)
-                elif value == "datetime":
-                    populated_data[key] = self.fake.date_time().isoformat()
-                elif value == "date":
-                    populated_data[key] = self.fake.date()
-                elif value == "integer":
-                    populated_data[key] = self.fake.random_int()
-                elif value == "string":
-                    populated_data[key] = self.fake.word()
-                elif value == "float":
-                    populated_data[key] = self.fake.pyfloat()
-                else:
-                    populated_data[key] = self.fake.word()
-
-            return json.dumps(populated_data)
+            return {
+                key: self._populateJsonStructure(value)
+                if isinstance(value, (dict, list))
+                else self._generatePrimitive(value)
+                for key, value in structure.items()
+            }
 
         elif isinstance(structure, list):
-            populated_list = []
-            for item in structure:
-                if item == "integer":
-                    populated_list.append(self.fake.random_int())
-                elif item == "string":
-                    populated_list.append(self.fake.word())
-                elif item == "datetime":
-                    populated_list.append(self.fake.date_time().isoformat())
-                elif item == "date":
-                    populated_list.append(self.fake.date())
-                elif item == "float":
-                    populated_list.append(self.fake.pyfloat())
-                else:
-                    populated_list.append(self.fake.word())
+            return [
+                self._populateJsonStructure(item)
+                if isinstance(item, (dict, list))
+                else self._generatePrimitive(item)
+                for item in structure
+            ]
 
-            return json.dumps(populated_list)
+        return structure
 
-        return json.dumps(structure)
+    def _generatePrimitive(self, primitive_type: str) -> Any:
+        """
+        Generates fake data for primitive types.
+        """
+        if primitive_type == "datetime":
+            return self.fake.date_time().isoformat()
+        elif primitive_type == "date":
+            return self.fake.date()
+        elif primitive_type == "integer":
+            return self.fake.random_int()
+        elif primitive_type == "string":
+            return self.fake.word()
+        elif primitive_type == "float":
+            return self.fake.pyfloat()
+        return self.fake.word()

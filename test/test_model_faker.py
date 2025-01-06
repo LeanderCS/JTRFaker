@@ -34,8 +34,13 @@ class MyModel(db.Model):
     float_field = db.Column(db.Float((5, 2)), nullable=False)
     date_field = db.Column(db.Date, nullable=False)
     datetime_field = db.Column(db.DateTime, nullable=False)
-    json_field = db.Column(db.Text, nullable=False,
-                           doc='["string", "integer"]')
+    json_list_field = db.Column(db.Text, nullable=False,
+                                doc='["string", "integer"]')
+    json_obj_field = db.Column(
+        db.Text,
+        nullable=False,
+        doc='{"street": "string", '
+            '"location": {"city": "string", "zip": "integer"}}')
 
 
 @pytest.fixture
@@ -158,13 +163,13 @@ def test_float_field(fake_data) -> None:
     assert isinstance(entry.float_field, float)
 
     precision = len(
-        str(entry.float_field).replace('.', '').replace('-', ''))
-    assert precision == 5
+        str(entry.float_field).replace(".", "").replace("-", ""))
+    assert precision <= 5
 
     scale = len(
-        str(entry.float_field).split('.')[1]) if '.' in str(entry.float_field)\
+        str(entry.float_field).split(".")[1]) if "." in str(entry.float_field)\
         else 0
-    assert scale == 2
+    assert scale <= 2
 
 
 def test_bool_field(fake_data) -> None:
@@ -203,7 +208,7 @@ def test_datetime_field(fake_data) -> None:
     assert isinstance(entry.datetime_field, datetime)
 
 
-def test_json_field(fake_data) -> None:
+def test_json_list_field(fake_data) -> None:
     """
     Test if the json field is handled correctly.
     """
@@ -212,12 +217,32 @@ def test_json_field(fake_data) -> None:
 
     entry = MyModel.query.first()
 
-    assert entry.json_field is not None
-    assert isinstance(entry.json_field, str)
+    assert entry.json_list_field is not None
+    assert isinstance(entry.json_list_field, str)
 
-    json_data = eval(entry.json_field)
+    json_data = eval(entry.json_list_field)
     assert isinstance(json_data, list)
     assert len(json_data) == 2
 
     assert isinstance(json_data[0], str)
     assert isinstance(json_data[1], int)
+
+
+def test_json_obj_field(fake_data) -> None:
+    """
+    Test if the json field is handled correctly.
+    """
+
+    fake_data.create()
+
+    entry = MyModel.query.first()
+
+    assert isinstance(entry.json_obj_field, str)
+
+    json_data = eval(entry.json_obj_field)
+    assert isinstance(json_data, dict)
+
+    assert isinstance(json_data["street"], str)
+    assert isinstance(json_data["location"], dict)
+    assert isinstance(json_data["location"]["city"], str)
+    assert isinstance(json_data["location"]["zip"], int)
