@@ -32,7 +32,7 @@ class MyModel(db.Model):
     max_min_integer_field = db.Column(db.Integer, nullable=False, info={"min": 100, "max": 101})
     date_field = db.Column(db.Date, nullable=False)
     datetime_field = db.Column(db.DateTime, nullable=False)
-    json_field = db.Column(db.Text, nullable=False, doc='["integer"]')
+    json_field = db.Column(db.Text, nullable=False, doc='["string", "integer"]')
 
 
 @pytest.fixture
@@ -190,7 +190,10 @@ def test_json_field(fake_data) -> None:
 
     assert entry.json_field is not None
     assert isinstance(entry.json_field, str)
+
     jsonData = eval(entry.json_field)
     assert isinstance(jsonData, list)
-    assert len(jsonData) == 1
+    assert len(jsonData) == 2
+
     assert isinstance(jsonData[0], str)
+    assert isinstance(jsonData[1], int)

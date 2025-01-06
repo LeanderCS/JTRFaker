@@ -202,14 +202,29 @@ class ModelFaker:
                     populated_data[key] = self.fake.date_time().isoformat()
                 elif value == "date":
                     populated_data[key] = self.fake.date()
+                elif value == "integer":
+                    populated_data[key] = self.fake.random_int()
+                elif value == "string":
+                    populated_data[key] = self.fake.word()
                 else:
                     populated_data[key] = self.fake.word()
 
             return json.dumps(populated_data)
 
         elif isinstance(structure, list):
-            return json.dumps(
-                [self.fake.word() for _ in range(len(structure))]
-            )
+            populated_list = []
+            for item in structure:
+                if item == "integer":
+                    populated_list.append(self.fake.random_int())
+                elif item == "string":
+                    populated_list.append(self.fake.word())
+                elif item == "datetime":
+                    populated_list.append(self.fake.date_time().isoformat())
+                elif item == "date":
+                    populated_list.append(self.fake.date())
+                else:
+                    populated_list.append(self.fake.word())
+
+            return json.dumps(populated_list)
 
         return json.dumps(structure)

@@ -161,6 +161,17 @@ emails: Column[Text] = db.Column(
     db.Text(),
     nullable=False,
     default='[]',
-    doc='["string"]'
+    doc='["string"], ["integer"]'
+)
+```
+
+Another example would result in a json object eg. object in the database:
+
+```python
+address: Column[Text] = db.Column(
+    db.Text(),
+    nullable=False,
+    default='{}',
+    doc='{"street": "string", "city": "string", "zip": "string"}'
 )
 ```
