@@ -16,10 +16,10 @@ docker exec -it jtrfaker bash
 
 ### Run tests
 ```bash
-pytest
+docker exec -it jtrfaker pytest
 ```
 
 ### Run linting
 ```bash
-flake8
+docker exec -it jtrfaker flake8
 ```

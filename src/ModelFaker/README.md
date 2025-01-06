@@ -68,6 +68,22 @@ description: Column[String] = db.Column(
 )
 ```
 
+## Define max and min values
+
+The `ModelFaker` module supports max and min values for fields. You can define the range of values for integer and float fields.
+
+### Example implementation of max and min values
+
+Following example would result in a random integer value between 1 and 100:
+
+```python   
+age: Column[Integer] = db.Column(
+    db.Integer(),
+    nullable=False,
+    info={"min": 1, "max": 100}
+)
+```
+
 
 ## Define enum fields
 

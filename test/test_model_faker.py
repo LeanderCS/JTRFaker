@@ -23,13 +23,16 @@ class MyModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     string_field = db.Column(db.String(80), nullable=False)
+    short_string_field = db.Column(db.String(5), nullable=False)
+    long_string_field = db.Column(db.String(255), nullable=False)
     nullable_field = db.Column(db.String(80), nullable=True)
     boolean_field = db.Column(db.Boolean, nullable=False)
     default_field = db.Column(db.String(80), nullable=False, default="test123")
     integer_field = db.Column(db.Integer, nullable=False)
+    max_min_integer_field = db.Column(db.Integer, nullable=False, info={"min": 100, "max": 101})
     date_field = db.Column(db.Date, nullable=False)
     datetime_field = db.Column(db.DateTime, nullable=False)
-    json_field = db.Column(db.Text, nullable=False, doc='["string"]')
+    json_field = db.Column(db.Text, nullable=False, doc='["integer"]')
 
 
 @pytest.fixture
@@ -111,7 +114,6 @@ def test_string_field(fake_data) -> None:
 
     entry = MyModel.query.first()
 
-    assert entry.string_field is not None
     assert isinstance(entry.string_field, str)
 
 
@@ -125,6 +127,20 @@ def test_integer_field(fake_data) -> None:
     entry = MyModel.query.first()
 
     assert isinstance(entry.integer_field, int)
+
+
+def test_max_min_integer_field(fake_data) -> None:
+    """
+    Test if the integer field is handled correctly.
+    """
+
+    fake_data.create()
+
+    entry = MyModel.query.first()
+
+    assert isinstance(entry.max_min_integer_field, int)
+    assert entry.max_min_integer_field >= 100
+    assert entry.max_min_integer_field <= 101
 
 
 def test_bool_field(fake_data) -> None:
@@ -174,7 +190,7 @@ def test_json_field(fake_data) -> None:
 
     assert entry.json_field is not None
     assert isinstance(entry.json_field, str)
-    json_data = eval(entry.json_field)  # Convert JSON string to Python object
-    assert isinstance(json_data, list)
-    assert len(json_data) == 1
-    assert isinstance(json_data[0], str)
+    jsonData = eval(entry.json_field)
+    assert isinstance(jsonData, list)
+    assert len(jsonData) == 1
+    assert isinstance(jsonData[0], str)

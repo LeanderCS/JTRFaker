@@ -84,10 +84,13 @@ class ModelFaker:
             return self.__handleRelationship(column)
 
         elif isinstance(columnType, ModelColumnTypesEnum.STRING.value):
-            return self.fake.word()
+            maxLength = columnType.length if hasattr(columnType, 'length') else 255
+            return self.fake.text(max_nb_chars=maxLength)
 
         elif isinstance(columnType, ModelColumnTypesEnum.INTEGER.value):
-            return self.fake.random_int(min=1, max=100)
+            minValue = column.info.get("min", 1)
+            maxValue = column.info.get("max", 100)
+            return self.fake.random_int(min=minValue, max=maxValue)
 
         elif isinstance(columnType, ModelColumnTypesEnum.BOOLEAN.value):
             return self.fake.boolean()
