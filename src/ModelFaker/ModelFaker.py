@@ -84,13 +84,27 @@ class ModelFaker:
             return self.__handleRelationship(column)
 
         elif isinstance(columnType, ModelColumnTypesEnum.STRING.value):
-            maxLength = columnType.length if hasattr(columnType, 'length') else 255
+            maxLength = columnType.length if hasattr(columnType, 'length')\
+                else 255
             return self.fake.text(max_nb_chars=maxLength)
 
         elif isinstance(columnType, ModelColumnTypesEnum.INTEGER.value):
-            minValue = column.info.get("min", 1)
-            maxValue = column.info.get("max", 100)
-            return self.fake.random_int(min=minValue, max=maxValue)
+            info = column.info
+            if not info:
+                return self.fake.random_int()
+
+            min_value = column.info.get("min", 1)
+            max_value = column.info.get("max", 100)
+            return self.fake.random_int(min=min_value, max=max_value)
+
+        elif isinstance(columnType, ModelColumnTypesEnum.FLOAT.value):
+            precision = getattr(columnType, 'precision')
+            if not precision:
+                return self.fake.pyfloat()
+
+            max_value = 10 ** (precision[0] - precision[1]) - 1
+            return round(self.fake.pyfloat(min_value=0, max_value=max_value),
+                         precision[1])
 
         elif isinstance(columnType, ModelColumnTypesEnum.BOOLEAN.value):
             return self.fake.boolean()
@@ -206,6 +220,8 @@ class ModelFaker:
                     populated_data[key] = self.fake.random_int()
                 elif value == "string":
                     populated_data[key] = self.fake.word()
+                elif value == "float":
+                    populated_data[key] = self.fake.pyfloat()
                 else:
                     populated_data[key] = self.fake.word()
 
@@ -222,6 +238,8 @@ class ModelFaker:
                     populated_list.append(self.fake.date_time().isoformat())
                 elif item == "date":
                     populated_list.append(self.fake.date())
+                elif item == "float":
+                    populated_list.append(self.fake.pyfloat())
                 else:
                     populated_list.append(self.fake.word())
 

@@ -68,6 +68,7 @@ description: Column[String] = db.Column(
 )
 ```
 
+
 ## Define max and min values
 
 The `ModelFaker` module supports max and min values for fields. You can define the range of values for integer and float fields.
